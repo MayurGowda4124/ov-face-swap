@@ -42,6 +42,9 @@ function convertImageToJPEG(blob) {
 }
 
 export const swapFaces = async (sourceImageBlob, targetImageUrl, userDetails = {}) => {
+  // #region agent log
+  fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:44',message:'swapFaces called',data:{targetImageUrl,userDetailsName:userDetails.name,sourceImageBlobType:sourceImageBlob?.type},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+  // #endregion
   try {
     const formData = new FormData();
 
@@ -52,16 +55,29 @@ export const swapFaces = async (sourceImageBlob, targetImageUrl, userDetails = {
       characterImageUrl = `${window.location.origin}${targetImageUrl}`;
     }
     
+    // #region agent log
+    fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:52',message:'Character image URL resolved',data:{originalUrl:targetImageUrl,resolvedUrl:characterImageUrl,origin:window.location.origin},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
     console.log("Fetching character image from:", characterImageUrl);
     
     // Fetch the character image - this will be the base image (sourceImage)
+    // #region agent log
+    fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:58',message:'Before character image fetch',data:{characterImageUrl},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
     const characterResponse = await fetch(characterImageUrl);
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:62',message:'Character image fetch response',data:{status:characterResponse.status,statusText:characterResponse.statusText,ok:characterResponse.ok},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
     
     if (!characterResponse.ok) {
       throw new Error(`Failed to fetch character image: ${characterResponse.status} ${characterResponse.statusText}`);
     }
     
     const characterImageBlob = await characterResponse.blob();
+    // #region agent log
+    fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:70',message:'Character image blob created',data:{blobSize:characterImageBlob.size,blobType:characterImageBlob.type},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
     formData.append(
       "sourceImage",
       new File([characterImageBlob], "sourceImage.jpg", { type: "image/jpeg" })
@@ -83,14 +99,23 @@ export const swapFaces = async (sourceImageBlob, targetImageUrl, userDetails = {
     // Remove trailing slash from backendUrl and ensure single slash before endpoint
     const cleanBackendUrl = backendUrl.replace(/\/+$/, '');
     const apiUrl = `${cleanBackendUrl}/api/swap-face/`;  // Use trailing slash to match backend
+    // #region agent log
+    fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:78',message:'Before backend API call',data:{backendUrl,apiUrl,formDataKeys:Array.from(formData.keys())},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
     console.log("Calling API:", apiUrl);
     const swapResponse = await fetch(apiUrl, {
       method: "POST",
       body: formData,
     });
+    // #region agent log
+    fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:85',message:'Backend API response received',data:{status:swapResponse.status,statusText:swapResponse.statusText,ok:swapResponse.ok,headers:Object.fromEntries(swapResponse.headers.entries())},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
 
     if (!swapResponse.ok) {
       const errorText = await swapResponse.text();
+      // #region agent log
+      fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:90',message:'Backend API error',data:{status:swapResponse.status,errorText},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+      // #endregion
       throw new Error(`API error: ${swapResponse.status} - ${errorText}`);
     }
 
@@ -159,6 +184,9 @@ export const swapFaces = async (sourceImageBlob, targetImageUrl, userDetails = {
       localPath: responseData.local_path,
     };
   } catch (error) {
+    // #region agent log
+    fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:145',message:'swapFaces error caught',data:{errorMessage:error.message,errorName:error.name,errorStack:error.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+    // #endregion
     console.error("Face swap error:", error);
     throw error;
   }
