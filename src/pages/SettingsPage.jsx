@@ -50,13 +50,32 @@ const SettingsPage = () => {
     setIsTesting(true);
     setTestResult(null);
 
-    const backendUrl = `http://${hostIP.trim()}:${port.trim()}`;
+    // Handle both HTTP and HTTPS URLs, and ngrok-style URLs
+    let backendUrl;
+    if (hostIP.trim().startsWith('http://') || hostIP.trim().startsWith('https://')) {
+      // Full URL provided
+      backendUrl = hostIP.trim();
+      if (port.trim() && port.trim() !== '80' && port.trim() !== '443') {
+        const urlObj = new URL(backendUrl);
+        urlObj.port = port.trim();
+        backendUrl = urlObj.toString();
+      }
+    } else if (hostIP.trim().includes('.ngrok') || hostIP.trim().includes('.ngrok-free.app') || hostIP.trim().includes('.ngrok-free.dev')) {
+      // ngrok domain - use HTTPS
+      backendUrl = `https://${hostIP.trim()}`;
+    } else {
+      // Regular IP - use HTTP (will fail from HTTPS page due to mixed content)
+      backendUrl = `http://${hostIP.trim()}:${port.trim()}`;
+    }
     const testUrl = `${backendUrl}/api/test`;
 
     try {
       console.log("Testing backend connection to:", testUrl);
+      console.log("Current page origin:", window.location.origin);
+      console.log("Current page protocol:", window.location.protocol);
       const response = await fetch(testUrl, {
         method: "GET",
+        mode: "cors",
         headers: {
           "Content-Type": "application/json",
         },
@@ -76,9 +95,17 @@ const SettingsPage = () => {
       }
     } catch (error) {
       console.error("Backend connection test failed:", error);
+      const errorMsg = error.message || "Unknown error";
+      
+      // Check for mixed content error
+      const isMixedContent = window.location.protocol === 'https:' && testUrl.startsWith('http:');
+      const mixedContentNote = isMixedContent 
+        ? "\n\n⚠️ MIXED CONTENT ISSUE DETECTED:\nYour app is on HTTPS (Vercel) but backend is HTTP.\nBrowsers block HTTPS→HTTP requests for security.\n\nSOLUTIONS:\n1. Use ngrok or similar to create HTTPS tunnel to backend\n2. Set up SSL certificate for backend\n3. Test from HTTP page (not Vercel)"
+        : "";
+      
       setTestResult({ 
         success: false, 
-        message: `❌ Connection failed: ${error.message}\n\nPossible issues:\n- Backend not running\n- Wrong IP address\n- Firewall blocking connection\n- Not on same WiFi network\n\nURL tried: ${testUrl}` 
+        message: `❌ Connection failed: ${errorMsg}${mixedContentNote}\n\nURL tried: ${testUrl}\n\nNote: Direct browser access works, but fetch from app fails.\nThis suggests a CORS or Mixed Content security issue.` 
       });
     } finally {
       setIsTesting(false);
@@ -90,8 +117,20 @@ const SettingsPage = () => {
     
     if (!isValid) return;
 
-    // Construct backend URL
-    const backendUrl = `http://${hostIP.trim()}:${port.trim()}`;
+    // Construct backend URL (same logic as test function)
+    let backendUrl;
+    if (hostIP.trim().startsWith('http://') || hostIP.trim().startsWith('https://')) {
+      backendUrl = hostIP.trim();
+      if (port.trim() && port.trim() !== '80' && port.trim() !== '443') {
+        const urlObj = new URL(backendUrl);
+        urlObj.port = port.trim();
+        backendUrl = urlObj.toString();
+      }
+    } else if (hostIP.trim().includes('.ngrok') || hostIP.trim().includes('.ngrok-free.app') || hostIP.trim().includes('.ngrok-free.dev')) {
+      backendUrl = `https://${hostIP.trim()}`;
+    } else {
+      backendUrl = `http://${hostIP.trim()}:${port.trim()}`;
+    }
     
     // Save settings
     localStorage.setItem("backendUrl", backendUrl);
@@ -117,16 +156,16 @@ const SettingsPage = () => {
 
         <form onSubmit={handleSubmit} className="settings-form">
           <div className="form-group">
-            <label htmlFor="hostIP">Backend Host IP</label>
+            <label htmlFor="hostIP">Backend Host IP or ngrok URL</label>
             <input
               type="text"
               id="hostIP"
               value={hostIP}
               onChange={(e) => setHostIP(e.target.value)}
-              placeholder="192.168.1.100"
+              placeholder="192.168.1.100 or abc123.ngrok-free.app"
               className="form-input"
             />
-            <small className="form-hint">Your laptop's local IP address</small>
+            <small className="form-hint">Your laptop's IP address OR ngrok HTTPS URL (required for Vercel HTTPS app)</small>
           </div>
 
           <div className="form-group">
