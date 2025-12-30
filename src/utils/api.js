@@ -45,8 +45,22 @@ export const swapFaces = async (sourceImageBlob, targetImageUrl, userDetails = {
   try {
     const formData = new FormData();
 
+    // Convert relative URL to absolute URL if needed
+    let characterImageUrl = targetImageUrl;
+    if (targetImageUrl.startsWith('/')) {
+      // Relative path - convert to absolute URL using current origin
+      characterImageUrl = `${window.location.origin}${targetImageUrl}`;
+    }
+    
+    console.log("Fetching character image from:", characterImageUrl);
+    
     // Fetch the character image - this will be the base image (sourceImage)
-    const characterResponse = await fetch(targetImageUrl);
+    const characterResponse = await fetch(characterImageUrl);
+    
+    if (!characterResponse.ok) {
+      throw new Error(`Failed to fetch character image: ${characterResponse.status} ${characterResponse.statusText}`);
+    }
+    
     const characterImageBlob = await characterResponse.blob();
     formData.append(
       "sourceImage",
@@ -66,7 +80,11 @@ export const swapFaces = async (sourceImageBlob, targetImageUrl, userDetails = {
 
     // Make API call to local backend (get URL dynamically)
     const backendUrl = getBackendUrl();
-    const swapResponse = await fetch(`${backendUrl}/api/swap-face/`, {
+    // Remove trailing slash from backendUrl and ensure single slash before endpoint
+    const cleanBackendUrl = backendUrl.replace(/\/+$/, '');
+    const apiUrl = `${cleanBackendUrl}/api/swap-face/`;  // Use trailing slash to match backend
+    console.log("Calling API:", apiUrl);
+    const swapResponse = await fetch(apiUrl, {
       method: "POST",
       body: formData,
     });
