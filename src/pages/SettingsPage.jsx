@@ -89,45 +89,73 @@ const SettingsPage = () => {
     const trimmedHost = hostIP.trim();
     const trimmedPort = port.trim();
     
+    // #region agent log
+    fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SettingsPage.jsx:89',message:'Test connection started',data:{trimmedHost,trimmedPort,hostIPOriginal:hostIP,portOriginal:port},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'M'})}).catch(()=>{});
+    // #endregion
+    
+    // Simple URL construction - avoid complex parsing
     if (trimmedHost.startsWith('http://') || trimmedHost.startsWith('https://')) {
-      // Full URL provided - use as is
-      backendUrl = trimmedHost;
-      // Only add port if specified and not default ports
-      if (trimmedPort && trimmedPort !== '80' && trimmedPort !== '443') {
-        try {
-          const urlObj = new URL(backendUrl);
-          urlObj.port = trimmedPort;
-          backendUrl = urlObj.toString();
-        } catch (e) {
-          console.error("URL parsing error:", e);
-          throw new Error(`Invalid URL format: ${backendUrl}`);
-        }
-      }
-    } else if (trimmedHost.includes('.ngrok') || trimmedHost.includes('.ngrok-free.app') || trimmedHost.includes('.ngrok-free.dev')) {
-      // ngrok domain - use HTTPS (port not needed, uses default 443)
+      // Full URL provided - use as is, remove trailing slash if any
+      backendUrl = trimmedHost.replace(/\/+$/, '');
+      // #region agent log
+      fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SettingsPage.jsx:95',message:'Full URL detected',data:{backendUrl},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'M'})}).catch(()=>{});
+      // #endregion
+    } else if (trimmedHost.includes('.ngrok')) {
+      // ngrok domain - always use HTTPS
       backendUrl = `https://${trimmedHost}`;
+      // #region agent log
+      fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SettingsPage.jsx:100',message:'ngrok URL detected',data:{backendUrl},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'M'})}).catch(()=>{});
+      // #endregion
     } else {
       // Regular IP - use HTTP (will fail from HTTPS page due to mixed content)
       if (!trimmedPort || isNaN(parseInt(trimmedPort))) {
-        throw new Error("Port is required for IP addresses");
+        setTestResult({ 
+          success: false, 
+          message: "Port is required for IP addresses. Please enter a port number (e.g., 8000)." 
+        });
+        setIsTesting(false);
+        return;
       }
       backendUrl = `http://${trimmedHost}:${trimmedPort}`;
+      // #region agent log
+      fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SettingsPage.jsx:111',message:'Regular IP URL',data:{backendUrl},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'M'})}).catch(()=>{});
+      // #endregion
     }
     
-    const testUrl = `${backendUrl}/api/test`;
+    // Construct test URL - ensure no double slashes
+    const testUrl = `${backendUrl.replace(/\/+$/, '')}/api/test`;
+    // #region agent log
+    fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SettingsPage.jsx:118',message:'Test URL constructed',data:{testUrl,backendUrl},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'M'})}).catch(()=>{});
+    // #endregion
     console.log("Constructed test URL:", testUrl);
+    console.log("Backend URL:", backendUrl);
 
     try {
       // Validate URL format before making request
+      let validatedUrl;
       try {
-        new URL(testUrl); // This will throw if URL is invalid
+        validatedUrl = new URL(testUrl); // This will throw if URL is invalid
+        // #region agent log
+        fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SettingsPage.jsx:130',message:'URL validation passed',data:{testUrl,protocol:validatedUrl.protocol,hostname:validatedUrl.hostname,port:validatedUrl.port,pathname:validatedUrl.pathname},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'N'})}).catch(()=>{});
+        // #endregion
       } catch (urlError) {
-        throw new Error(`Invalid URL format: ${testUrl}. Error: ${urlError.message}`);
+        // #region agent log
+        fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SettingsPage.jsx:134',message:'URL validation failed',data:{testUrl,errorMessage:urlError.message,errorName:urlError.name,errorStack:urlError.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'N'})}).catch(()=>{});
+        // #endregion
+        setTestResult({ 
+          success: false, 
+          message: `❌ Invalid URL Format\n\nURL: ${testUrl}\nError: ${urlError.message}\n\nPlease check:\n- No spaces or special characters\n- Correct format (domain or IP)\n- For ngrok: just the domain (e.g., luetta-cosmological-laylah.ngrok-free.dev)` 
+        });
+        setIsTesting(false);
+        return;
       }
       
       console.log("Testing backend connection to:", testUrl);
       console.log("Current page origin:", window.location.origin);
       console.log("Current page protocol:", window.location.protocol);
+      // #region agent log
+      fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SettingsPage.jsx:145',message:'Before fetch request',data:{testUrl,pageOrigin:window.location.origin,pageProtocol:window.location.protocol},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'O'})}).catch(()=>{});
+      // #endregion
       const response = await fetch(testUrl, {
         method: "GET",
         mode: "cors",
@@ -135,6 +163,9 @@ const SettingsPage = () => {
           "Content-Type": "application/json",
         },
       });
+      // #region agent log
+      fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SettingsPage.jsx:153',message:'Fetch response received',data:{status:response.status,statusText:response.statusText,ok:response.ok,headers:Object.fromEntries(response.headers.entries())},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'O'})}).catch(()=>{});
+      // #endregion
 
       if (response.ok) {
         const data = await response.json();

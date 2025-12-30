@@ -11,13 +11,22 @@ import { supabase } from "../database/supabaseClient";
 const getBackendUrl = () => {
   // First check localStorage (from settings page)
   const savedUrl = localStorage.getItem("backendUrl");
+  // #region agent log
+  fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:12',message:'getBackendUrl called',data:{savedUrl,hasEnvVar:!!import.meta.env.VITE_BACKEND_URL},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'P'})}).catch(()=>{});
+  // #endregion
   if (savedUrl) {
     // Ensure URL is properly formatted
     let url = savedUrl.trim();
     // If it's a ngrok domain without protocol, add https://
     if (url.includes('.ngrok') && !url.startsWith('http://') && !url.startsWith('https://')) {
       url = `https://${url}`;
+      // #region agent log
+      fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:19',message:'Added https to ngrok URL',data:{originalUrl:savedUrl,modifiedUrl:url},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'P'})}).catch(()=>{});
+      // #endregion
     }
+    // #region agent log
+    fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:22',message:'Returning saved URL',data:{url},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'P'})}).catch(()=>{});
+    // #endregion
     // If it's a regular IP without protocol, add http://
     if (!url.startsWith('http://') && !url.startsWith('https://') && /^\d+\.\d+\.\d+\.\d+/.test(url)) {
       // Extract port if included
@@ -118,7 +127,7 @@ export const swapFaces = async (sourceImageBlob, targetImageUrl, userDetails = {
     const cleanBackendUrl = backendUrl.replace(/\/+$/, '');
     const apiUrl = `${cleanBackendUrl}/api/swap-face/`;  // Use trailing slash to match backend
     // #region agent log
-    fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:78',message:'Before backend API call',data:{backendUrl,apiUrl,formDataKeys:Array.from(formData.keys())},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:120',message:'Before backend API call',data:{backendUrl,cleanBackendUrl,apiUrl,formDataKeys:Array.from(formData.keys())},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'P'})}).catch(()=>{});
     // #endregion
     console.log("Calling API:", apiUrl);
     const swapResponse = await fetch(apiUrl, {
