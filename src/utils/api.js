@@ -12,7 +12,23 @@ const getBackendUrl = () => {
   // First check localStorage (from settings page)
   const savedUrl = localStorage.getItem("backendUrl");
   if (savedUrl) {
-    return savedUrl;
+    // Ensure URL is properly formatted
+    let url = savedUrl.trim();
+    // If it's a ngrok domain without protocol, add https://
+    if (url.includes('.ngrok') && !url.startsWith('http://') && !url.startsWith('https://')) {
+      url = `https://${url}`;
+    }
+    // If it's a regular IP without protocol, add http://
+    if (!url.startsWith('http://') && !url.startsWith('https://') && /^\d+\.\d+\.\d+\.\d+/.test(url)) {
+      // Extract port if included
+      const parts = url.split(':');
+      if (parts.length === 2) {
+        url = `http://${parts[0]}:${parts[1]}`;
+      } else {
+        url = `http://${url}:8000`; // Default port
+      }
+    }
+    return url;
   }
   // Then check environment variable
   if (import.meta.env.VITE_BACKEND_URL) {

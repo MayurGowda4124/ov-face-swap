@@ -18,15 +18,33 @@ const SettingsPage = () => {
 
     if (savedBackendUrl) {
       try {
+        // Try to parse as URL
         const url = new URL(savedBackendUrl);
         setHostIP(url.hostname);
-        setPort(url.port || "8000");
+        // For ngrok URLs, don't set port (uses default 443)
+        if (url.hostname.includes('.ngrok')) {
+          setPort(""); // Empty for ngrok
+        } else {
+          setPort(url.port || "8000");
+        }
       } catch (e) {
         // If URL parsing fails, try to extract from saved value
-        const match = savedBackendUrl.match(/http:\/\/([^:]+):?(\d*)/);
-        if (match) {
-          setHostIP(match[1]);
-          setPort(match[2] || "8000");
+        // Handle HTTPS URLs
+        const httpsMatch = savedBackendUrl.match(/https:\/\/([^/:]+)/);
+        if (httpsMatch) {
+          setHostIP(httpsMatch[1]);
+          setPort(""); // HTTPS uses default port 443
+        } else {
+          // Handle HTTP URLs
+          const httpMatch = savedBackendUrl.match(/http:\/\/([^:]+):?(\d*)/);
+          if (httpMatch) {
+            setHostIP(httpMatch[1]);
+            setPort(httpMatch[2] || "8000");
+          } else {
+            // Just a domain or IP
+            setHostIP(savedBackendUrl);
+            setPort("8000");
+          }
         }
       }
     }
@@ -68,24 +86,45 @@ const SettingsPage = () => {
 
     // Handle both HTTP and HTTPS URLs, and ngrok-style URLs
     let backendUrl;
-    if (hostIP.trim().startsWith('http://') || hostIP.trim().startsWith('https://')) {
-      // Full URL provided
-      backendUrl = hostIP.trim();
-      if (port.trim() && port.trim() !== '80' && port.trim() !== '443') {
-        const urlObj = new URL(backendUrl);
-        urlObj.port = port.trim();
-        backendUrl = urlObj.toString();
+    const trimmedHost = hostIP.trim();
+    const trimmedPort = port.trim();
+    
+    if (trimmedHost.startsWith('http://') || trimmedHost.startsWith('https://')) {
+      // Full URL provided - use as is
+      backendUrl = trimmedHost;
+      // Only add port if specified and not default ports
+      if (trimmedPort && trimmedPort !== '80' && trimmedPort !== '443') {
+        try {
+          const urlObj = new URL(backendUrl);
+          urlObj.port = trimmedPort;
+          backendUrl = urlObj.toString();
+        } catch (e) {
+          console.error("URL parsing error:", e);
+          throw new Error(`Invalid URL format: ${backendUrl}`);
+        }
       }
-    } else if (hostIP.trim().includes('.ngrok') || hostIP.trim().includes('.ngrok-free.app') || hostIP.trim().includes('.ngrok-free.dev')) {
-      // ngrok domain - use HTTPS
-      backendUrl = `https://${hostIP.trim()}`;
+    } else if (trimmedHost.includes('.ngrok') || trimmedHost.includes('.ngrok-free.app') || trimmedHost.includes('.ngrok-free.dev')) {
+      // ngrok domain - use HTTPS (port not needed, uses default 443)
+      backendUrl = `https://${trimmedHost}`;
     } else {
       // Regular IP - use HTTP (will fail from HTTPS page due to mixed content)
-      backendUrl = `http://${hostIP.trim()}:${port.trim()}`;
+      if (!trimmedPort || isNaN(parseInt(trimmedPort))) {
+        throw new Error("Port is required for IP addresses");
+      }
+      backendUrl = `http://${trimmedHost}:${trimmedPort}`;
     }
+    
     const testUrl = `${backendUrl}/api/test`;
+    console.log("Constructed test URL:", testUrl);
 
     try {
+      // Validate URL format before making request
+      try {
+        new URL(testUrl); // This will throw if URL is invalid
+      } catch (urlError) {
+        throw new Error(`Invalid URL format: ${testUrl}. Error: ${urlError.message}`);
+      }
+      
       console.log("Testing backend connection to:", testUrl);
       console.log("Current page origin:", window.location.origin);
       console.log("Current page protocol:", window.location.protocol);
