@@ -8,10 +8,16 @@ const ProcessingPage = () => {
 
   useEffect(() => {
     const processImages = async () => {
+      // #region agent log
+      fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ProcessingPage.jsx:10',message:'processImages started',data:{hasCapturedImage:!!localStorage.getItem("capturedImageBlob"),hasSelectedCharacter:!!localStorage.getItem("selectedCharacter")},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
+      // #endregion
       try {
         // Get the necessary data
         const capturedImageBlob = localStorage.getItem("capturedImageBlob");
         const selectedCharacter = localStorage.getItem("selectedCharacter");
+        // #region agent log
+        fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ProcessingPage.jsx:16',message:'Retrieved from localStorage',data:{capturedImageBlob:capturedImageBlob?.substring(0,50),selectedCharacter},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
+        // #endregion
 
         if (!capturedImageBlob || !selectedCharacter) {
           navigate("/capture");
@@ -19,13 +25,25 @@ const ProcessingPage = () => {
         }
 
         // Convert blob URL to blob
+        // #region agent log
+        fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ProcessingPage.jsx:23',message:'Before converting blob URL',data:{capturedImageBlob:capturedImageBlob?.substring(0,50)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
+        // #endregion
         const imageBlob = await fetch(capturedImageBlob).then((r) => r.blob());
+        // #region agent log
+        fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ProcessingPage.jsx:25',message:'Blob converted',data:{blobSize:imageBlob.size,blobType:imageBlob.type},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
+        // #endregion
 
         // Call the face swap API (name and email are optional for iPad version)
+        // #region agent log
+        fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ProcessingPage.jsx:28',message:'Before swapFaces call',data:{selectedCharacter,imageBlobSize:imageBlob.size},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
+        // #endregion
         const result = await swapFaces(imageBlob, selectedCharacter, {
           name: "iPad User",
           email: ""
         });
+        // #region agent log
+        fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ProcessingPage.jsx:33',message:'swapFaces completed',data:{hasPublicUrl:!!result.publicUrl,hasImageBase64:!!result.imageBase64,hasRecordId:!!result.recordId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
+        // #endregion
 
         // Store the result (matching main project's localStorage key)
         // Use Supabase public URL if available, otherwise fallback to local blob
@@ -46,9 +64,14 @@ const ProcessingPage = () => {
         // Navigate to result screen
         navigate("/result");
       } catch (error) {
+        // #region agent log
+        fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ProcessingPage.jsx:48',message:'processImages error caught',data:{errorMessage:error.message,errorName:error.name,errorStack:error.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
+        // #endregion
         console.error("Face swap failed:", error);
         const errorMessage = error.message || "Unknown error";
-        alert(`Failed to process image. Please try again.\n\nError: ${errorMessage}\n\nMake sure the backend is running on your laptop and accessible from this device.`);
+        // Show detailed error in alert
+        const detailedError = `Error Details:\n${errorMessage}\n\nBackend URL: ${localStorage.getItem("backendUrl") || "Not set"}\nCharacter: ${localStorage.getItem("selectedCharacter") || "Not set"}`;
+        alert(`Failed to process image. Please try again.\n\n${detailedError}\n\nMake sure the backend is running on your laptop and accessible from this device.`);
         navigate("/capture");
       }
     };

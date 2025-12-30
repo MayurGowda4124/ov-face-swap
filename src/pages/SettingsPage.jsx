@@ -8,6 +8,8 @@ const SettingsPage = () => {
   const [port, setPort] = useState("8000");
   const [cameraFacing, setCameraFacing] = useState("user"); // "user" for front, "environment" for back
   const [isValid, setIsValid] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
+  const [testResult, setTestResult] = useState(null);
 
   useEffect(() => {
     // Load saved settings
@@ -38,6 +40,50 @@ const SettingsPage = () => {
     const portValid = port.trim().length > 0 && !isNaN(parseInt(port));
     setIsValid(ipValid && portValid);
   }, [hostIP, port]);
+
+  const testBackendConnection = async () => {
+    if (!isValid) {
+      setTestResult({ success: false, message: "Please enter a valid IP and port first" });
+      return;
+    }
+
+    setIsTesting(true);
+    setTestResult(null);
+
+    const backendUrl = `http://${hostIP.trim()}:${port.trim()}`;
+    const testUrl = `${backendUrl}/api/test`;
+
+    try {
+      console.log("Testing backend connection to:", testUrl);
+      const response = await fetch(testUrl, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setTestResult({ 
+          success: true, 
+          message: `✅ Connection successful! Backend is running.\nResponse: ${JSON.stringify(data)}` 
+        });
+      } else {
+        setTestResult({ 
+          success: false, 
+          message: `❌ Connection failed: ${response.status} ${response.statusText}\nURL: ${testUrl}` 
+        });
+      }
+    } catch (error) {
+      console.error("Backend connection test failed:", error);
+      setTestResult({ 
+        success: false, 
+        message: `❌ Connection failed: ${error.message}\n\nPossible issues:\n- Backend not running\n- Wrong IP address\n- Firewall blocking connection\n- Not on same WiFi network\n\nURL tried: ${testUrl}` 
+      });
+    } finally {
+      setIsTesting(false);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -111,6 +157,35 @@ const SettingsPage = () => {
           </div>
 
           <div className="form-actions">
+            <button
+              type="button"
+              onClick={testBackendConnection}
+              disabled={!isValid || isTesting}
+              className="button test-button"
+              style={{ 
+                backgroundColor: "#4CAF50", 
+                color: "white",
+                marginBottom: "10px"
+              }}
+            >
+              {isTesting ? "Testing Connection..." : "Test Backend Connection"}
+            </button>
+            
+            {testResult && (
+              <div style={{
+                padding: "15px",
+                marginBottom: "15px",
+                borderRadius: "8px",
+                backgroundColor: testResult.success ? "#d4edda" : "#f8d7da",
+                color: testResult.success ? "#155724" : "#721c24",
+                fontSize: "14px",
+                whiteSpace: "pre-wrap",
+                textAlign: "left"
+              }}>
+                {testResult.message}
+              </div>
+            )}
+
             <button
               type="button"
               onClick={handleSkip}
