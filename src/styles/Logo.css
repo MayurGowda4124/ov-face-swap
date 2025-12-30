@@ -1,0 +1,15 @@
+.app-logo {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  height: auto;
+  max-width: 200px;
+  z-index: 1000;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.app-logo:hover {
+  transform: scale(1.05);
+}
+

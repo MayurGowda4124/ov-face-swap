@@ -1,0 +1,168 @@
+/* Background is handled by third-background class in index.css */
+
+.capture-container {
+  width: 90%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  padding-bottom: 40px;
+}
+
+.capture-title {
+  font-size: 66px;
+  color: white;
+  text-align: center;
+  font-family: "Heineken-Bold";
+  margin-bottom: 30px;
+}
+
+.camera-frame {
+  width: 100%;
+  max-width: 550px;
+  height: 70vh;
+  max-height: 800px;
+  overflow: hidden;
+  position: relative;
+  border: none;
+  box-sizing: border-box;
+}
+
+.camera-frame::before,
+.camera-frame::after,
+.camera-frame > *::before,
+.camera-frame > *::after {
+  content: "";
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  border-color: white;
+  border-style: solid;
+  z-index: 20;
+  padding: 0;
+}
+
+.camera-frame::before {
+  top: 0;
+  left: 0;
+  border-width: 3px 0 0 3px;
+}
+
+.camera-frame::after {
+  top: 0;
+  right: 0;
+  border-width: 3px 3px 0 0;
+}
+
+.camera-frame > *::before {
+  bottom: 0;
+  left: 0;
+  border-width: 0 0 3px 3px;
+}
+
+.camera-frame > *::after {
+  bottom: 0;
+  right: 0;
+  border-width: 0 3px 3px 0;
+}
+
+.camera-wrapper {
+  padding: 20px;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.camera-feed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.camera-feed.ready {
+  opacity: 1;
+}
+
+.captured-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+.countdown-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10;
+}
+
+.countdown {
+  font-size: 120px;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  font-family: "Heineken-Bold";
+}
+
+.camera-controls {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.capture-button {
+  width: 550px;
+  max-width: 100%;
+  background-color: white;
+  color: #EA002A;
+  border: none;
+  height: 80px;
+  font-size: 40px;
+  font-family: "Heineken-Bold";
+  margin-top: 20px;
+}
+
+.post-capture-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 550px;
+}
+
+.retake-button {
+  width: 100%;
+  background-color: white;
+  color: #EA002A;
+  border: none;
+  height: 80px;
+  font-size: 40px;
+  font-family: "Heineken-Bold";
+  margin-top: 20px;
+}
+
+.continue-button {
+  width: 100%;
+  background-color: white;
+  color: #EA002A;
+  border: none;
+  height: 80px;
+  font-size: 40px;
+  font-family: "Heineken-Bold";
+}
+

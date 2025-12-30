@@ -1,0 +1,205 @@
+@font-face {
+  font-family: "Heineken";
+  src: url("/fonts/BebasNeue-Bold.ttf") format("truetype");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Heineken-Bold";
+  src: url("/fonts/BebasNeue-Bold.ttf") format("truetype");
+  font-display: swap;
+}
+
+:root {
+  --primary-color: #fff;
+  --secondary-color: #0d8744;
+  --text-color: #fff;
+  --background-color: #ffffff;
+  --accent-color: #3a49d0;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Heineken", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--text-color);
+  overflow: hidden;
+  height: 100vh;
+  height: -webkit-fill-available;
+  width: 100vw;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/* Hide browser UI elements and close buttons */
+body::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide fullscreen close button on iPad */
+video::-webkit-media-controls {
+  display: none !important;
+}
+
+/* Hide Safari fullscreen close button */
+video::-webkit-media-controls-enclosure {
+  display: none !important;
+}
+
+/* Hide all potential close buttons and UI overlays */
+*::-webkit-media-controls-panel,
+*::-webkit-media-controls-play-button,
+*::-webkit-media-controls-start-playback-button {
+  display: none !important;
+}
+
+/* Prevent default browser UI */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Hide any native iOS/Safari UI elements */
+html {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Hide fullscreen exit button */
+video::backdrop,
+video::-webkit-media-controls-overlay-enclosure {
+  display: none !important;
+}
+
+/* Hide Safari fullscreen close button */
+html:fullscreen::backdrop,
+html:-webkit-full-screen::backdrop,
+html:-moz-full-screen::backdrop,
+html:-ms-fullscreen::backdrop {
+  display: none !important;
+}
+
+/* Overlay to hide the X button area in fullscreen */
+html:fullscreen::before,
+html:-webkit-full-screen::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 60px;
+  height: 60px;
+  background: transparent;
+  z-index: 999999;
+  pointer-events: none;
+}
+
+/* Try to hide any close buttons in fullscreen */
+html:fullscreen button,
+html:-webkit-full-screen button,
+html:-moz-full-screen button,
+html:-ms-fullscreen button {
+  display: none !important;
+}
+
+/* Hide any UI elements that might be the X button */
+html:fullscreen *[class*="close"],
+html:fullscreen *[class*="exit"],
+html:-webkit-full-screen *[class*="close"],
+html:-webkit-full-screen *[class*="exit"] {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+.screen {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.welcome-background,
+.thankyou-background,
+.content-background,
+.third-background {
+  background-image: url("/assets/theme.jpg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.subtitle {
+  font-size: 32px;
+  color: white;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.slide-in {
+  animation: slideIn 0.5s ease-out;
+}
+
+.button {
+  padding: 20px 40px;
+  font-size: 24px;
+  font-weight: bold;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: "Heineken-Bold";
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
