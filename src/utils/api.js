@@ -71,7 +71,9 @@ export const swapFaces = async (sourceImageBlob, targetImageUrl, userDetails = {
     // #endregion
     
     if (!characterResponse.ok) {
-      throw new Error(`Failed to fetch character image: ${characterResponse.status} ${characterResponse.statusText}`);
+      const errorDetail = `Character image fetch failed: ${characterResponse.status} ${characterResponse.statusText}. URL: ${characterImageUrl}`;
+      console.error(errorDetail);
+      throw new Error(errorDetail);
     }
     
     const characterImageBlob = await characterResponse.blob();
@@ -112,11 +114,18 @@ export const swapFaces = async (sourceImageBlob, targetImageUrl, userDetails = {
     // #endregion
 
     if (!swapResponse.ok) {
-      const errorText = await swapResponse.text();
+      let errorText = '';
+      try {
+        errorText = await swapResponse.text();
+      } catch (e) {
+        errorText = 'Could not read error response';
+      }
+      const errorDetail = `Backend API error: ${swapResponse.status} ${swapResponse.statusText}. URL: ${apiUrl}. Error: ${errorText.substring(0, 200)}`;
+      console.error(errorDetail);
       // #region agent log
       fetch('http://127.0.0.1:7247/ingest/f7542cce-9a3b-4010-a074-f818ed42306f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:90',message:'Backend API error',data:{status:swapResponse.status,errorText},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
       // #endregion
-      throw new Error(`API error: ${swapResponse.status} - ${errorText}`);
+      throw new Error(errorDetail);
     }
 
     // Get the response
