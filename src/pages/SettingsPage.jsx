@@ -37,13 +37,29 @@ const SettingsPage = () => {
   useEffect(() => {
     // Validate inputs
     const ipValid = hostIP.trim().length > 0;
-    const portValid = port.trim().length > 0 && !isNaN(parseInt(port));
+    // Port is optional for ngrok URLs (HTTPS uses default port 443)
+    // For regular IPs, port is required
+    const isNgrokUrl = hostIP.trim().includes('.ngrok') || 
+                       hostIP.trim().startsWith('http://') || 
+                       hostIP.trim().startsWith('https://');
+    const portValid = isNgrokUrl ? true : (port.trim().length > 0 && !isNaN(parseInt(port)));
     setIsValid(ipValid && portValid);
   }, [hostIP, port]);
 
   const testBackendConnection = async () => {
-    if (!isValid) {
-      setTestResult({ success: false, message: "Please enter a valid IP and port first" });
+    // Check if we have at least a host/IP
+    if (hostIP.trim().length === 0) {
+      setTestResult({ success: false, message: "Please enter a backend host IP or ngrok URL first" });
+      return;
+    }
+    
+    // For ngrok URLs, port is optional. For regular IPs, we need port
+    const isNgrokUrl = hostIP.trim().includes('.ngrok') || 
+                       hostIP.trim().startsWith('http://') || 
+                       hostIP.trim().startsWith('https://');
+    
+    if (!isNgrokUrl && (port.trim().length === 0 || isNaN(parseInt(port)))) {
+      setTestResult({ success: false, message: "Please enter a valid port number for IP addresses" });
       return;
     }
 
@@ -115,7 +131,21 @@ const SettingsPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (!isValid) return;
+    // Validate: need at least host/IP
+    if (hostIP.trim().length === 0) {
+      alert("Please enter a backend host IP or ngrok URL");
+      return;
+    }
+    
+    // For ngrok URLs, port is optional. For regular IPs, we need port
+    const isNgrokUrl = hostIP.trim().includes('.ngrok') || 
+                       hostIP.trim().startsWith('http://') || 
+                       hostIP.trim().startsWith('https://');
+    
+    if (!isNgrokUrl && (port.trim().length === 0 || isNaN(parseInt(port)))) {
+      alert("Please enter a valid port number for IP addresses");
+      return;
+    }
 
     // Construct backend URL (same logic as test function)
     let backendUrl;
